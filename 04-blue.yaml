@@ -1,0 +1,154 @@
+#kubectl create secret generic redis-auth --from-literal=password='VoteVibe@Redis2026!' -n blue
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-auth
+  namespace: result
+type: Opaque
+data:
+  password: Vm90ZVZpYmVAUmVkaXMyMDI2IQ==
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-code
+  namespace: blue
+data:
+  app.py: "import os\nimport redis\nfrom flask import Flask, render_template_string,\
+    \ redirect, jsonify\napp = Flask(__name__)\nTEAM = os.environ['TEAM']\nKEY = TEAM\
+    \ + '_votes'\ndef client():\n    return redis.Redis(host=os.environ['REDIS_HOST'],\
+    \ port=6379, password=os.environ['REDIS_PASSWORD'], socket_connect_timeout=2,\
+    \ socket_timeout=2, decode_responses=True)\nHTML = \"\"\"<!doctype html><html><head><meta\
+    \ name=viewport content='width=device-width,initial-scale=1'><title>{{team}} Vote</title><style>body{background:{{bg}};color:white;font-family:sans-serif;text-align:center;padding:12vh\
+    \ 15px}main{max-width:540px;margin:auto;padding:35px;border:2px solid white;border-radius:18px}h1{font-size:3em}strong{font-size:5em}button{padding:18px\
+    \ 45px;border:0;border-radius:40px;font-weight:bold;cursor:pointer}</style></head><body><main><h1>{{team|upper}}\
+    \ TEAM</h1><p>CloudVibe VoteVibe</p><strong>{{votes}}</strong><p>votes recorded\
+    \ in Redis</p><form method=post action=/vote><button>CAST {{team|upper}} VOTE</button></form><p>Pod:\
+    \ {{pod}}</p></main></body></html>\"\"\"\n@app.get('/')\ndef index():\n    try:\
+    \ count = int(client().get(KEY) or 0)\n    except redis.RedisError: return 'Redis\
+    \ unavailable', 503\n    return render_template_string(HTML, team=TEAM, votes=count,\
+    \ bg='#163b83' if TEAM=='blue' else '#8a1824', pod=os.environ.get('HOSTNAME','unknown'))\n\
+    @app.post('/vote')\ndef vote():\n    try: client().incr(KEY)\n    except redis.RedisError:\
+    \ return 'Vote not saved: Redis unavailable', 503\n    return redirect('/', code=303)\n\
+    @app.get('/healthz')\ndef healthz(): return jsonify(status='alive')\n@app.get('/readyz')\n\
+    def readyz():\n    try: client().ping(); return jsonify(status='ready')\n    except\
+    \ redis.RedisError: return jsonify(status='redis unavailable'), 503\n"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: blue
+data:
+  REDIS_HOST: redis-service.redis.svc.cluster.local
+  TEAM: blue
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blue-app
+  namespace: blue
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: blue-app
+  template:
+    metadata:
+      labels:
+        app: blue-app
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: web
+        image: python:3.11-slim
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -ec
+        args:
+        - pip install --no-cache-dir --disable-pip-version-check --target /tmp/python
+          flask==3.1.1 redis==6.2.0 gunicorn==23.0.0 && PYTHONPATH=/tmp/python exec
+          /tmp/python/bin/gunicorn --bind 0.0.0.0:5000 --workers 2 --access-logfile
+          - app:app
+        workingDir: /app
+        envFrom:
+        - configMapRef:
+            name: app-config
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-auth
+              key: password
+        ports:
+        - name: http
+          containerPort: 5000
+        resources:
+          requests:
+            cpu: 75m
+            memory: 128Mi
+          limits:
+            cpu: 400m
+            memory: 384Mi
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 5
+          failureThreshold: 30
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          periodSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - name: code
+          mountPath: /app
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: code
+        configMap:
+          name: app-code
+      - name: tmp
+        emptyDir:
+          sizeLimit: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blue-service
+  namespace: blue
+spec:
+  type: NodePort
+  selector:
+    app: blue-app
+  ports:
+  - name: http
+    port: 80
+    targetPort: 5000
+    nodePort: 30001
