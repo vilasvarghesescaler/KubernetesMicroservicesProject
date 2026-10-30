@@ -1,0 +1,487 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-viewer
+  namespace: blue
+rules:
+- apiGroups:
+  - ''
+  - apps
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-viewer-binding
+  namespace: blue
+subjects:
+- kind: Group
+  name: votevibe-viewers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-viewer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-developer
+  namespace: blue
+rules:
+- apiGroups:
+  - ''
+  - apps
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - apps
+  resources:
+  - deployments/scale
+  verbs:
+  - get
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-developer-binding
+  namespace: blue
+subjects:
+- kind: Group
+  name: votevibe-developers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-operator
+  namespace: blue
+rules:
+- apiGroups:
+  - ''
+  - apps
+  - networking.k8s.io
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  - statefulsets
+  - networkpolicies
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-operator-binding
+  namespace: blue
+subjects:
+- kind: Group
+  name: votevibe-operators
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-viewer
+  namespace: red
+rules:
+- apiGroups:
+  - ''
+  - apps
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-viewer-binding
+  namespace: red
+subjects:
+- kind: Group
+  name: votevibe-viewers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-viewer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-developer
+  namespace: red
+rules:
+- apiGroups:
+  - ''
+  - apps
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - apps
+  resources:
+  - deployments/scale
+  verbs:
+  - get
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-developer-binding
+  namespace: red
+subjects:
+- kind: Group
+  name: votevibe-developers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-operator
+  namespace: red
+rules:
+- apiGroups:
+  - ''
+  - apps
+  - networking.k8s.io
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  - statefulsets
+  - networkpolicies
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-operator-binding
+  namespace: red
+subjects:
+- kind: Group
+  name: votevibe-operators
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-viewer
+  namespace: redis
+rules:
+- apiGroups:
+  - ''
+  - apps
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-viewer-binding
+  namespace: redis
+subjects:
+- kind: Group
+  name: votevibe-viewers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-viewer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-developer
+  namespace: redis
+rules:
+- apiGroups:
+  - ''
+  - apps
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - apps
+  resources:
+  - deployments/scale
+  verbs:
+  - get
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-developer-binding
+  namespace: redis
+subjects:
+- kind: Group
+  name: votevibe-developers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-operator
+  namespace: redis
+rules:
+- apiGroups:
+  - ''
+  - apps
+  - networking.k8s.io
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  - statefulsets
+  - networkpolicies
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-operator-binding
+  namespace: redis
+subjects:
+- kind: Group
+  name: votevibe-operators
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-viewer
+  namespace: result
+rules:
+- apiGroups:
+  - ''
+  - apps
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-viewer-binding
+  namespace: result
+subjects:
+- kind: Group
+  name: votevibe-viewers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-viewer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-developer
+  namespace: result
+rules:
+- apiGroups:
+  - ''
+  - apps
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - apps
+  resources:
+  - deployments/scale
+  verbs:
+  - get
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-developer-binding
+  namespace: result
+subjects:
+- kind: Group
+  name: votevibe-developers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: votevibe-operator
+  namespace: result
+rules:
+- apiGroups:
+  - ''
+  - apps
+  - networking.k8s.io
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - deployments
+  - statefulsets
+  - networkpolicies
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: votevibe-operator-binding
+  namespace: result
+subjects:
+- kind: Group
+  name: votevibe-operators
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: votevibe-operator
+  apiGroup: rbac.authorization.k8s.io
