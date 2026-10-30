@@ -1,0 +1,198 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: blue
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: red
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: redis
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: result
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-required
+  namespace: blue
+spec:
+  podSelector:
+    matchLabels:
+      app: blue-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - ports:
+    - protocol: TCP
+      port: 5000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: redis
+      podSelector:
+        matchLabels:
+          app: votevibe-redis
+    ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-required
+  namespace: red
+spec:
+  podSelector:
+    matchLabels:
+      app: red-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - ports:
+    - protocol: TCP
+      port: 5000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: redis
+      podSelector:
+        matchLabels:
+          app: votevibe-redis
+    ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-required
+  namespace: result
+spec:
+  podSelector:
+    matchLabels:
+      app: result-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - ports:
+    - protocol: TCP
+      port: 5000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: redis
+      podSelector:
+        matchLabels:
+          app: votevibe-redis
+    ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-voting-clients
+  namespace: redis
+spec:
+  podSelector:
+    matchLabels:
+      app: votevibe-redis
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: blue
+      podSelector:
+        matchLabels:
+          app: blue-app
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: red
+      podSelector:
+        matchLabels:
+          app: red-app
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: result
+      podSelector:
+        matchLabels:
+          app: result-app
+    ports:
+    - protocol: TCP
+      port: 6379
