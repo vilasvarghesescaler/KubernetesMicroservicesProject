@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: blue
+  labels: {project: votevibe, kubernetes.io/metadata.name: blue}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: red
+  labels: {project: votevibe, kubernetes.io/metadata.name: red}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redis
+  labels: {project: votevibe, kubernetes.io/metadata.name: redis}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: result
+  labels: {project: votevibe, kubernetes.io/metadata.name: result}
