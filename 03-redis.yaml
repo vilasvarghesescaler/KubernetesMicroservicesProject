@@ -1,0 +1,76 @@
+#kubectl create secret generic redis-auth --from-literal=password='VoteVibe@Redis2026!' -n redis
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-auth
+  namespace: redis
+type: Opaque
+data:
+  password: Vm90ZVZpYmVAUmVkaXMyMDI2IQ==
+---
+apiVersion: v1
+kind: Service
+metadata: {name: redis-headless, namespace: redis}
+spec:
+  clusterIP: None
+  selector: {app: votevibe-redis}
+  ports: [{name: redis, port: 6379, targetPort: 6379}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: redis-service, namespace: redis}
+spec:
+  type: ClusterIP
+  selector: {app: votevibe-redis}
+  ports: [{name: redis, port: 6379, targetPort: 6379}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: {name: votevibe-redis, namespace: redis}
+spec:
+  serviceName: redis-headless
+  replicas: 1
+  selector:
+    matchLabels: {app: votevibe-redis}
+  template:
+    metadata:
+      labels: {app: votevibe-redis}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsUser: 999, runAsGroup: 999, fsGroup: 999, seccompProfile: {type: RuntimeDefault}}
+      containers:
+      - name: redis
+        image: redis:7.4-alpine
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-ec"]
+        args:
+        - |
+          exec redis-server --appendonly yes --appendfsync everysec --save '60 1' --dir /data --maxmemory 96mb --maxmemory-policy noeviction --requirepass "$REDIS_PASSWORD" --protected-mode yes
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef: {name: redis-auth, key: password}
+        ports: [{name: redis, containerPort: 6379}]
+        resources:
+          requests: {cpu: 50m, memory: 128Mi}
+          limits: {cpu: 300m, memory: 256Mi}
+        startupProbe:
+          tcpSocket: {port: redis}
+          periodSeconds: 3
+          failureThreshold: 20
+        readinessProbe:
+          exec:
+            command: ["/bin/sh", "-ec", 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli ping | grep -qx PONG']
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command: ["/bin/sh", "-ec", 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli ping | grep -qx PONG']
+          periodSeconds: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: [ALL]}
+        volumeMounts: [{name: data, mountPath: /data}]
+      volumes:
+      - name: data
+        persistentVolumeClaim: {claimName: redis-data}
