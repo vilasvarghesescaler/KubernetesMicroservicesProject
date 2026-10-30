@@ -1,0 +1,31 @@
+#mkdir -p /var/lib/votevibe/redis
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: votevibe-redis-pv
+spec:
+  capacity: {storage: 2Gi}
+  volumeMode: Filesystem
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  local:
+    path: /var/lib/votevibe/redis
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values: [kmaster]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: redis-data, namespace: redis}
+spec:
+  storageClassName: ""
+  volumeName: votevibe-redis-pv
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests: {storage: 2Gi}
