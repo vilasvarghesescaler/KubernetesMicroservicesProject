@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: redis-auth
-  namespace: result
+  namespace: blue
 type: Opaque
 data:
   password: Vm90ZVZpYmVAUmVkaXMyMDI2IQ==
